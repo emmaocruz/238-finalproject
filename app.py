@@ -6,6 +6,7 @@ from pitch_perfect import PitchPerfect
 
 def run_notebook(pitcher_name, batter_name):
     # Example: Simulate running part of the notebook
+    zones = gr.Image("zones.png")
     pitcher = pitcher_name.split()
     batter = batter_name.split()
 
@@ -36,7 +37,7 @@ def run_notebook(pitcher_name, batter_name):
     for i in range(len(seq)):
       pitch_sequence += (states[i] + ": "+ str(p.pitches[seq[i][0]]) + ", Zone " + str(seq[i][1]) + "\n")
 
-    return pitch_sequence
+    return pitch_sequence, zones
 
 # start by initializing Q with all data
 data = load_statcast.retrieve_data()
@@ -48,9 +49,6 @@ title = "Pitch Perfect"
 f = open("description.md")
 desc = f.read()
 
-f = open("article.md")
-article = f.read()
-
-interface = gr.Interface(theme=gr.themes.Soft(), fn=run_notebook, inputs=[gr.Textbox(label="Pitcher Name"), gr.Textbox(label="Batter Name")], outputs=[gr.Textbox(label="The predicted optimal pitch sequence is:")], title=title,
-                description=desc, article=article)
+interface = gr.Interface(theme=gr.themes.Soft(), fn=run_notebook, inputs=[gr.Textbox(label="Pitcher Name"), gr.Textbox(label="Batter Name")], outputs=[gr.Textbox(label="The predicted optimal pitch sequence is:"), gr.Image(label="Pitch Zones (for reference)")], title=title,
+                description=desc)
 interface.launch(debug=True)
