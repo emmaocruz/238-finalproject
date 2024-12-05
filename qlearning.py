@@ -20,7 +20,6 @@ class QLearning:
     def initialize_q(self, gamma=1):
         # Run value iteration first to get an initial value for U over the whole dataset.
         U = self.value_iteration()  # ignore the last four elements of this array
-        print(U)
 
         # Initialize Q for Q learning
         Q = np.zeros((16, 134))
