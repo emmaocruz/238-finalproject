@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 def run_notebook(pitcher_name, batter_name):
     # Example: Simulate running part of the notebook
-    zones = gr.Image("zones.png")
+    zones = gr.Image("zones2.png")
     pitcher = pitcher_name.split()
     batter = batter_name.split()
     fig = plt.figure(figsize=(8, 30))
