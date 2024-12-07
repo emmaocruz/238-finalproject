@@ -271,3 +271,57 @@ class PitchPerfect:
     for s in range(12):
       pi[s] = max(range(len(Q[s])), key=Q[s].__getitem__)
     return [self.actions[int(pi[i])] for i in range(12)]
+  
+  def generate_heat_map(self, Q, arsenal):
+    min = float('inf')
+    max = -float('inf')
+    heat_map = np.zeros((12, len(arsenal), 16, 10))
+  
+    for a in self.actions:
+      if a[0] not in arsenal:
+        continue
+      p = arsenal.index(a[0])
+      zone = a[1]
+      a = list(self.actions).index((a[0], a[1]))
+      for s in range(12):
+        Q_value = Q[s, a]
+
+        if Q_value > max:
+          max = Q_value
+        if Q_value < min:
+          min = Q_value
+        
+        # Now we've extracted Q value, we can build the heat map
+        if zone == 1:
+          heat_map[s, p, 2:6, 2:4] = Q_value  # zone 1
+        elif zone == 2:
+          heat_map[s, p, 2:6, 4:6] = Q_value  # zone 2
+        elif zone == 3:
+          heat_map[s, p, 2:6, 6:8] = Q_value  # zone 3
+        elif zone == 4:
+          heat_map[s, p, 6:10, 2:4] = Q_value  # zone 4
+        elif zone == 5:
+          heat_map[s, p, 6:10, 4:6] = Q_value  # zone 5
+        elif zone == 6:
+          heat_map[s, p, 6:10, 6:8] = Q_value  # zone 6
+        elif zone == 7:
+          heat_map[s, p, 10:14, 2:4] = Q_value  # zone 7
+        elif zone == 8:
+          heat_map[s, p, 10:14, 4:6] = Q_value  # zone 8
+        elif zone == 9:
+          heat_map[s, p, 10:14, 6:8] = Q_value  # zone 9
+        elif zone == 11:
+          heat_map[s, p, 0:2, 0:5] = Q_value  # zone 11
+          heat_map[s, p, 0:8, 0:2] = Q_value  # zone 11
+        elif zone == 12:
+          heat_map[s, p, 0:2, 5:] = Q_value  # zone 12
+          heat_map[s, p, 0:8, 8:] = Q_value  # zone 12
+        elif zone == 13:
+          heat_map[s, p, 8:, 0:2] = Q_value  # zone 13
+          heat_map[s, p, 14:, 0:5] = Q_value  # zone 13
+        elif zone == 14:
+          heat_map[s, p, 14:, 5:] = Q_value  # zone 14
+          heat_map[s, p, 8:, 8:] = Q_value  # zone 14            
+
+    return heat_map, min, max
+        
