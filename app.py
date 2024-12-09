@@ -33,10 +33,10 @@ def run_notebook(pitcher_name, batter_name):
 
     print("Optimizing Q for this pitcher and batter combo")
     Qp = Q.copy()
-    Qp = model.QLearn(Qp, obs_pitcher, 0.1)
+    Qp = model.QLearn(Qp, obs_pitcher, 0.01, gamma=0.99)
 
     Qb = Qp.copy()
-    Qb = model.QLearn(Qb, obs_batter, 0.1)
+    Qb = model.QLearn(Qb, obs_batter, 0.01, gamma=0.99)
 
     print("Calculating pitch sequence")
     seq = p.get_pitch_seq(Qb, arsenal)
