@@ -17,9 +17,20 @@ class QLearning:
             U = np.array([self.bellman_backup(U, s) for s in range(16)])
         return U
 
+    def eval_random(self, gamma = 1):
+        U = np.zeros(16)
+        for k in range(1000):
+            a = np.random.randint(0, 133)
+            U = np.array([(self.R[s, a] + gamma * np.sum([self.T[s, a, sp]*U[sp] for sp in range(16)])) for s in range(16)])
+        return U
+
     def initialize_q(self, gamma=1):
         # Run value iteration first to get an initial value for U over the whole dataset.
         U = self.value_iteration()  # ignore the last four elements of this array
+
+        U_rand = np.zeros((100, 16))
+        for i in range(100):
+            U_rand[i, :] = self.eval_random()    
 
         # Initialize Q for Q learning
         Q = np.zeros((16, 134))
@@ -28,7 +39,7 @@ class QLearning:
             for a in range(134):
                 Q[s,a] = self.R[s, a] + np.sum([self.T[s, a, sp]*U[sp] for sp in range(16)])
 
-        return Q
+        return Q, U_rand
 
     def extract_policy(self, Q, actions):
         pi = np.zeros(12)

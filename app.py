@@ -33,10 +33,10 @@ def run_notebook(pitcher_name, batter_name):
 
     print("Optimizing Q for this pitcher and batter combo")
     Qp = Q.copy()
-    Qp = model.QLearn(Qp, obs_pitcher, 0.3)
+    Qp = model.QLearn(Qp, obs_pitcher, 0.1)
 
     Qb = Qp.copy()
-    Qb = model.QLearn(Qb, obs_batter, 0.3)
+    Qb = model.QLearn(Qb, obs_batter, 0.1)
 
     print("Calculating pitch sequence")
     seq = p.get_pitch_seq(Qb, arsenal)
@@ -68,7 +68,16 @@ print("Creating models")
 p = PitchPerfect(data)
 model = QLearning(p)
 print("Initializing Q learning")
-Q = model.initialize_q(data)
+Q, U_rand = model.initialize_q(data)
+
+# Uncomment these lines to compare U^* with a random policy
+# U_star = np.amax(Q, axis=1)
+# U_rand_std = np.std(U_rand, axis=0)
+# U_rand_mean = np.mean(U_rand, axis=0)
+
+# print("U_star:", U_star)
+# print("U_rand std:", U_rand_std)
+# print("U_rand mean:", U_rand_mean)
 
 title = "Pitch Perfect"
 f = open("description.md")
