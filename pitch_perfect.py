@@ -263,7 +263,7 @@ class PitchPerfect:
 
     obs = pd.DataFrame({
       's': s_obs,
-      'a': s_obs,
+      'a': a_obs,
       'r': r_obs,
       'sp': sp_obs
     })
