@@ -4,6 +4,7 @@ from qlearning import QLearning
 import load_statcast
 from pitch_perfect import PitchPerfect
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 def run_notebook(pitcher_name, batter_name):
     # Example: Simulate running part of the notebook
@@ -52,7 +53,10 @@ def run_notebook(pitcher_name, batter_name):
     for i in range(len(arsenal)):
         for j in range(12):
             ax = fig.add_subplot(3*len(arsenal), 4, 12 * i + j+1)
-            im = ax.imshow(data[j, i, :, :], cmap="RdBu")
+            heatmap = data[j, i, :, :]
+            nan_mask = np.isnan(heatmap)
+            sns.heatmap(heatmap, cmap="RdBu", ax=ax, mask=nan_mask, cbar=True, square=True)
+            #im = ax.imshow(data[j, i, :, :], cmap="RdBu")
             ax.set_title(f'{arsenal[i]} in {states[j]}')
             ax.set_axis_off()
     return pitch_sequence, zones, fig

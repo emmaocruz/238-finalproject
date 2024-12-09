@@ -8,6 +8,16 @@ class PitchPerfect:
     self.actions = data.index[0:134].droplevel(0)
     self.pitches = {'FA': 'Fastball', 'FT': 'Two-Seam Fastball', 'FC': 'Cutter', 'FS': 'Splitter', 'SI': 'Sinker', 'SL': 'Slider', 'CU': 'Curveball', 'KC': 'Knuckle Curve', 'EP': 'Eephus', 'CH': 'Changeup', 'SC': 'Screwball', 'KN': 'Knuckleball', 'ST': 'Sweeper', 'SV': 'Slurve', 'FF': 'Four-Seam Fastball'}
 
+    # pitches where we don't have enough data need to be stored
+    self.not_enough_data = set()
+    for s in range(16):
+      for a in range(134):
+        # s represents our count
+        pitch_type = self.actions[a][0]
+        zone = self.actions[a][1]
+        if (s, pitch_type, zone) not in self.data.index:
+          self.not_enough_data.add((s, pitch_type, zone))    
+
   def T_hit(self, count, type, zone):
     # P(hit) = P(hit|swing)*P(swing)
     return self.data.loc[(count, type, zone)]['Swing %']*self.data.loc[(count, type, zone)]['Hit Prob']
@@ -60,10 +70,10 @@ class PitchPerfect:
         zone = self.actions[a][1]
 
         # if this pitch isn't "allowed" (i.e. not enough data probably)
-        # we set the probability of remaining in the same state to 1 and move on
+        # we set the probability of a HIT to 1 to disincentivize this pitch
         # (also for the end states)
         if (s, pitch_type, zone) not in self.data.index:
-          T[s, a, s] = 1
+          T[s, a, -4] = 1
           continue
 
         # hit probability
@@ -89,7 +99,6 @@ class PitchPerfect:
         # foul probability (only if we already have 2 strikes)
         if (s + 1) % 3 == 0:
           T[s, a, s] = self.T_foul(s, pitch_type, zone)
-    
     return T
 
   def get_Rs(self):
@@ -278,50 +287,54 @@ class PitchPerfect:
     heat_map = np.zeros((12, len(arsenal), 16, 10))
   
     for a in self.actions:
-      if a[0] not in arsenal:
+      p = a[0]
+      if p not in arsenal:
         continue
-      p = arsenal.index(a[0])
+      p_ind = arsenal.index(p)
       zone = a[1]
       a = list(self.actions).index((a[0], a[1]))
       for s in range(12):
         Q_value = Q[s, a]
 
-        if Q_value > max:
-          max = Q_value
-        if Q_value < min:
-          min = Q_value
+        if (s, p, zone) in self.not_enough_data:
+          Q_value = float('nan')
+        else:
+          if Q_value > max:
+            max = Q_value
+          if Q_value < min:
+            min = Q_value
         
         # Now we've extracted Q value, we can build the heat map
         if zone == 1:
-          heat_map[s, p, 2:6, 2:4] = Q_value  # zone 1
+          heat_map[s, p_ind, 2:6, 2:4] = Q_value  # zone 1
         elif zone == 2:
-          heat_map[s, p, 2:6, 4:6] = Q_value  # zone 2
+          heat_map[s, p_ind, 2:6, 4:6] = Q_value  # zone 2
         elif zone == 3:
-          heat_map[s, p, 2:6, 6:8] = Q_value  # zone 3
+          heat_map[s, p_ind, 2:6, 6:8] = Q_value  # zone 3
         elif zone == 4:
-          heat_map[s, p, 6:10, 2:4] = Q_value  # zone 4
+          heat_map[s, p_ind, 6:10, 2:4] = Q_value  # zone 4
         elif zone == 5:
-          heat_map[s, p, 6:10, 4:6] = Q_value  # zone 5
+          heat_map[s, p_ind, 6:10, 4:6] = Q_value  # zone 5
         elif zone == 6:
-          heat_map[s, p, 6:10, 6:8] = Q_value  # zone 6
+          heat_map[s, p_ind, 6:10, 6:8] = Q_value  # zone 6
         elif zone == 7:
-          heat_map[s, p, 10:14, 2:4] = Q_value  # zone 7
+          heat_map[s, p_ind, 10:14, 2:4] = Q_value  # zone 7
         elif zone == 8:
-          heat_map[s, p, 10:14, 4:6] = Q_value  # zone 8
+          heat_map[s, p_ind, 10:14, 4:6] = Q_value  # zone 8
         elif zone == 9:
-          heat_map[s, p, 10:14, 6:8] = Q_value  # zone 9
+          heat_map[s, p_ind, 10:14, 6:8] = Q_value  # zone 9
         elif zone == 11:
-          heat_map[s, p, 0:2, 0:5] = Q_value  # zone 11
-          heat_map[s, p, 0:8, 0:2] = Q_value  # zone 11
+          heat_map[s, p_ind, 0:2, 0:5] = Q_value  # zone 11
+          heat_map[s, p_ind, 0:8, 0:2] = Q_value  # zone 11
         elif zone == 12:
-          heat_map[s, p, 0:2, 5:] = Q_value  # zone 12
-          heat_map[s, p, 0:8, 8:] = Q_value  # zone 12
+          heat_map[s, p_ind, 0:2, 5:] = Q_value  # zone 12
+          heat_map[s, p_ind, 0:8, 8:] = Q_value  # zone 12
         elif zone == 13:
-          heat_map[s, p, 8:, 0:2] = Q_value  # zone 13
-          heat_map[s, p, 14:, 0:5] = Q_value  # zone 13
+          heat_map[s, p_ind, 8:, 0:2] = Q_value  # zone 13
+          heat_map[s, p_ind, 14:, 0:5] = Q_value  # zone 13
         elif zone == 14:
-          heat_map[s, p, 14:, 5:] = Q_value  # zone 14
-          heat_map[s, p, 8:, 8:] = Q_value  # zone 14            
+          heat_map[s, p_ind, 14:, 5:] = Q_value  # zone 14
+          heat_map[s, p_ind, 8:, 8:] = Q_value  # zone 14            
 
     return heat_map, min, max
         
